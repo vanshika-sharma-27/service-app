@@ -1,6 +1,3 @@
-// FILE: models/Shop.js
-// Replace your full Shop model with this exact version
-
 const mongoose = require("mongoose");
 
 const shopSchema = new mongoose.Schema(
@@ -90,6 +87,11 @@ const shopSchema = new mongoose.Schema(
     regularCustomers: {
       type: Number,
       default: 0
+    },
+
+    isActive: {
+      type: Boolean,
+      default: true
     }
   },
   {
