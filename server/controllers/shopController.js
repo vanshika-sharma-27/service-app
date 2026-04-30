@@ -19,7 +19,8 @@ exports.createOrUpdateShop = async (req, res) => {
       mapLink,
       experienceYears,
       averageDailyCustomers,
-      regularCustomers
+      regularCustomers,
+      services
     } = req.body;
 
     // ================= VALIDATION =================
@@ -33,59 +34,52 @@ exports.createOrUpdateShop = async (req, res) => {
     ) {
       return res.status(400).json({
         msg:
-          "Shop name, phone, whatsapp, email, address, opening time, sundayHours and closing time are required"
+          "Shop name, phone, email, address, opening time and closing time are required"
       });
     }
 
-    let shop = await Shop.findOne({
-      ownerId: req.user.id
-    });
-
-    // ================= UPDATE EXISTING SHOP =================
-    if (shop) {
-      shop.shopName = shopName;
-      shop.ownerName = ownerName || "";
-      shop.phone = phone;
-      shop.whatsapp = whatsapp;
-      shop.email = email;
-      shop.address = address;
-      shop.openingTime = openingTime;
-      shop.closingTime = closingTime;
-      shop.sundayHours = sundayHours;
-      shop.description = description || "";
-      shop.logo = logo || "";
-      shop.bannerImage = bannerImage || "";
-      shop.mapLink = mapLink || "";
-      shop.experienceYears = Number(experienceYears) || 0;
-      shop.averageDailyCustomers = Number(averageDailyCustomers) || 0;
-      shop.regularCustomers = Number(regularCustomers) || 0;
-
-      await shop.save();
-
-    } else {
-      // ================= CREATE NEW SHOP =================
-      shop = new Shop({
+    // ================= SINGLE OWNER PERMANENT PROFILE =================
+    const shop = await Shop.findOneAndUpdate(
+      {
+        ownerId: req.user.id
+      },
+      {
         ownerId: req.user.id,
+
         shopName,
         ownerName: ownerName || "",
         phone,
-        whatsapp,
+        whatsapp: whatsapp || "",
         email,
         address,
+
         openingTime,
         closingTime,
-        sundayHours,
+        sundayHours: sundayHours || "",
+
         description: description || "",
+
         logo: logo || "",
         bannerImage: bannerImage || "",
         mapLink: mapLink || "",
-        experienceYears: Number(experienceYears) || 0,
-        averageDailyCustomers: Number(averageDailyCustomers) || 0,
-        regularCustomers: Number(regularCustomers) || 0
-      });
 
-      await shop.save();
-    }
+        experienceYears: Number(experienceYears) || 0,
+        averageDailyCustomers:
+          Number(averageDailyCustomers) || 0,
+        regularCustomers:
+          Number(regularCustomers) || 0,
+
+        services: Array.isArray(services)
+          ? services
+          : []
+      },
+      {
+        new: true,
+        upsert: true,
+        runValidators: true,
+        setDefaultsOnInsert: true
+      }
+    );
 
     res.status(200).json({
       msg: "Shop profile saved successfully",
@@ -96,7 +90,8 @@ exports.createOrUpdateShop = async (req, res) => {
     console.log("SHOP PROFILE ERROR:", err);
 
     res.status(500).json({
-      msg: "Server Error"
+      msg: "Server Error",
+      error: err.message
     });
   }
 };
@@ -120,7 +115,8 @@ exports.getOwnerShop = async (req, res) => {
     console.log("GET OWNER SHOP ERROR:", err);
 
     res.status(500).json({
-      msg: "Server Error"
+      msg: "Server Error",
+      error: err.message
     });
   }
 };
@@ -137,7 +133,8 @@ exports.getPublicShop = async (req, res) => {
     }
 
     const shop = await Shop.findOne({
-      ownerId
+      ownerId,
+      isActive: true
     });
 
     if (!shop) {
@@ -152,7 +149,8 @@ exports.getPublicShop = async (req, res) => {
     console.log("PUBLIC SHOP FETCH ERROR:", err);
 
     res.status(500).json({
-      msg: "Server Error"
+      msg: "Server Error",
+      error: err.message
     });
   }
 };
@@ -160,10 +158,9 @@ exports.getPublicShop = async (req, res) => {
 // ================= GET ALL SHOPS =================
 exports.getAllShops = async (req, res) => {
   try {
-    const shops = await Shop.find().populate(
-      "ownerId",
-      "name email"
-    );
+    const shops = await Shop.find({
+      isActive: true
+    }).populate("ownerId", "name email");
 
     res.status(200).json(shops);
 
@@ -171,7 +168,8 @@ exports.getAllShops = async (req, res) => {
     console.log("GET ALL SHOPS ERROR:", err);
 
     res.status(500).json({
-      msg: "Server Error"
+      msg: "Server Error",
+      error: err.message
     });
   }
 };

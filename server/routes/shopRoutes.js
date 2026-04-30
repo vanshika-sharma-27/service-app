@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const Shop = require("../models/Shop");
 
 // CORRECT IMPORTS
 const { authMiddleware } = require("../middleware/authMiddleware");
@@ -19,8 +20,8 @@ const {
 // ================= OWNER ONLY ROUTES =================
 
 // Create or update shop profile
-router.post(
-  "/",
+router.put(
+  "/update",
   authMiddleware,
   ownerMiddleware,
   createOrUpdateShop
