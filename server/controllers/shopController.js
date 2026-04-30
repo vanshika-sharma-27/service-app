@@ -124,16 +124,7 @@ exports.getOwnerShop = async (req, res) => {
 // ================= PUBLIC SHOP VIEW =================
 exports.getPublicShop = async (req, res) => {
   try {
-    const ownerId = req.query.ownerId;
-
-    if (!ownerId) {
-      return res.status(400).json({
-        msg: "Owner ID is required"
-      });
-    }
-
     const shop = await Shop.findOne({
-      ownerId,
       isActive: true
     });
 
