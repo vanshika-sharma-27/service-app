@@ -1,6 +1,8 @@
 {
   "dependencies": {
-    "dotenv": "^17.4.2"
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "mongoose": "^9.6.1"
   },
   "devDependencies": {
     "autoprefixer": "^10.5.0",
